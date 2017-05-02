@@ -21,8 +21,14 @@ typedef struct{
   int taille;
   char* debut;
 }champ;
+champ info_token[nb_token];
+/*
+un champ (taille, pointeur vers un caractère) contient toutes les informations 
+requises pour retrouver un champ (au sens RFC7230) d'une requête http.
+info_token est ici la variable globale qui permet de retrouver une occurence (Que se passe t il si occurences multiples ?) de chaque champs supporté.
+champ_token n'a pas l'air d'être initialisé, ce qui pourrait être préjudiciable à l'avenir.
+*/
 
-champ info_token[nb_token]; //structure ou tous les couples pointeurs/tailles sont stockes pour chaque token
 
 int search_header(char* token);
 int parser(char* buf, unsigned int len,char *search,void (*callback)());
@@ -32,7 +38,16 @@ void clear (void){  //inutile, juste pour vider le buffer pour un scanf
   while ( getchar() != '\n' );
 }
 
-void recopie(char* debut, int taille, char* copie){ //recopie taille lettre de la chaine debut dans la chaine copie
+/*
+void recopie(char* debut, int taille, char* copie);
+	Directive recopiant les "taille" premiers caractères de la chaine "debut"
+	à l'addresse de la chaine "copie".
+
+	(suggestion : meilleurs noms.)
+	(possiblement la même utilité à 100% avec la directive strncpy() de <string.h>.
+	Mais l'ordre des arguments diffère.)
+*/
+void recopie(char* debut, int taille, char* copie){ 
   int i;
   for (i=0;i<taille;i++){
     copie[i]=debut[i];
@@ -211,6 +226,13 @@ int parser(char* buf, unsigned int len,char* search,void (*callback)()){
   }
 }
 
+/*
+search_header renvoie la première occurence de la chaine de caractères "token"
+dans la liste globale de chaines de caractères nommées liste_token.
+Renvoie -1 sinon.
+
+En situation, cette fonction est utilisée pour trouver si un mot clef de header est supporté ou non. Si c'est le cas, il suffit alors d'appeler la directive qui analyse la ligne.
+*/
 int search_header(char* token){ // parcour dans le tableau des noms
   char testrecopiage[1000];
   for(int i=0;i<nb_token;i++){
@@ -221,6 +243,9 @@ int search_header(char* token){ // parcour dans le tableau des noms
   return -1; // pas trouve
 }
 
+/*
+Fonction de callback. A utiliser lorsque le parseur a trouvé le champs demandé.
+*/
 void getField(char* s,int len){ // une fonction de callback ( celle des profs)
   printf("Le parseur a trouve %.*s\n",len,s);
 }
